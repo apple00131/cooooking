@@ -325,6 +325,42 @@
     <!-- 新增按鈕 -->
     <button class="add-button" onclick="openAddModal()">+</button>
 
+    <!-- 匯出按鈕 -->
+    <button onclick="exportRecipes()" style="
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            font-size: 1.5rem;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+        " title="匯出食譜">
+        <i class="bi bi-download"></i>
+    </button>
+
+    <!-- 匯入按鈕 -->
+    <button onclick="document.getElementById('importFile').click()" style="
+            position: fixed;
+            bottom: 170px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            font-size: 1.5rem;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+        " title="匯入食譜">
+        <i class="bi bi-box-arrow-in-up"></i>
+    </button>
+
     <!-- 新增食譜模態框 -->
     <div class="modal" id="addModal">
         <div class="modal-content">
@@ -563,6 +599,45 @@
                 closeDetailModal();
             }
         }
+
+        // 匯出食譜
+  function exportRecipes() {
+      const dataStr = JSON.stringify(recipes, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'my_recipes_backup.json';
+      a.click();
+
+      URL.revokeObjectURL(url);
+  }
+
+  // 匯入食譜
+  function importRecipes(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+          try {
+              const importedData = JSON.parse(e.target.result);
+              if (Array.isArray(importedData)) {
+                  recipes = importedData;
+                  filteredRecipes = [...recipes];
+                  saveToLocalStorage();
+                  renderRecipes();
+                  alert('✅ 匯入成功！');
+              } else {
+                  alert('❌ 檔案格式錯誤！');
+              }
+          } catch (err) {
+              alert('❌ 匯入失敗：JSON 格式錯誤');
+          }
+      };
+      reader.readAsText(file);
+  }
 
         // 初始化
         filteredRecipes = [...recipes];
