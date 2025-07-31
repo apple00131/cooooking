@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
     <title>我的食譜收藏</title>
 
     <meta name="theme-color" content="#ff9a56">
@@ -455,6 +457,61 @@
             renderRecipes();
             closeAddModal();
         }
+        function editRecipe(index) {
+    const recipe = filteredRecipes[index];
+    const originalIndex = recipes.findIndex(r =>
+        r.name === recipe.name &&
+        r.ingredients === recipe.ingredients &&
+        r.method === recipe.method
+    );
+
+    document.getElementById('recipeName').value = recipe.name;
+    document.getElementById('ingredients').value = recipe.ingredients;
+    document.getElementById('method').value = recipe.method;
+
+    openAddModal();
+
+    // 將表單提交覆蓋為更新操作
+    const form = document.getElementById('recipeForm');
+    form.onsubmit = function (event) {
+        event.preventDefault();
+
+        recipes[originalIndex] = {
+            name: document.getElementById('recipeName').value,
+            ingredients: document.getElementById('ingredients').value,
+            method: document.getElementById('method').value,
+            createdAt: new Date()
+        };
+
+        saveToLocalStorage();
+        filteredRecipes = [...recipes];
+        renderRecipes();
+        closeAddModal();
+
+        // 恢復原始提交動作（新增）
+        form.onsubmit = addRecipe;
+    };
+}
+        function deleteRecipe(index) {
+    const recipe = filteredRecipes[index];
+    const confirmDelete = confirm(`確定要刪除「${recipe.name}」這道食譜嗎？`);
+
+    if (!confirmDelete) return;
+
+    // 找出原始 recipes 陣列的對應食譜並刪除
+    const originalIndex = recipes.findIndex(r =>
+        r.name === recipe.name &&
+        r.ingredients === recipe.ingredients &&
+        r.method === recipe.method
+    );
+
+    if (originalIndex !== -1) {
+        recipes.splice(originalIndex, 1);
+        saveToLocalStorage();
+        filteredRecipes = [...recipes];
+        renderRecipes();
+    }
+}
 
         function renderRecipes() {
             const grid = document.getElementById('recipesGrid');
@@ -475,11 +532,17 @@
                 const methodPreview = recipe.method.substring(0, 80) + (recipe.method.length > 80 ? '...' : '');
 
                 return `
-                    <div class="recipe-card" onclick="openDetailModal(${index})">
-                        <div class="recipe-title">${recipe.name}</div>
-                        <div class="recipe-preview">
-                            <div class="ingredients-preview"><strong>材料：</strong>${ingredientsPreview}</div>
-                            <div class="method-preview"><strong>作法：</strong>${methodPreview}</div>
+                    <div class="recipe-card">
+                        <div onclick="openDetailModal(${index})">
+                            <div class="recipe-title">${recipe.name}</div>
+                            <div class="recipe-preview">
+                                <div class="ingredients-preview"><strong>材料：</strong>${ingredientsPreview}</div>
+                                <div class="method-preview"><strong>作法：</strong>${methodPreview}</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+                            <button onclick="editRecipe(${index})" style=" font-size: 1rem; color: #4684bb;width: 35px; height: 35px; border-radius: 50%; border: none; box-shadow: 0px 1px 5px #b9b9b9; "><i class="bi bi-pencil-fill"></i></button>
+                            <button onclick="deleteRecipe(${index})" style="font-size: 1rem; color: #bb4646;width: 35px; height: 35px; border-radius: 50%; border: none; box-shadow: 0px 1px 5px #b9b9b9;"><i class="bi bi-trash-fill"></i></button>
                         </div>
                     </div>
                 `;
